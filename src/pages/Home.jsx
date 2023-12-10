@@ -40,10 +40,10 @@ function Home() {
 
                     <div className="mt-3">
                       <h3 className="font-medium text-gray-900 group-hover:underline group-hover:underline-offset-4">
-                        Basic Tee
+                        Lovely Tee-Shirts
                       </h3>
 
-                      <p className="mt-1 text-sm text-gray-700">$150</p>
+                      <p className="mt-1 text-sm text-gray-700">From $350</p>
                     </div>
                   </a>
                 </li>
@@ -58,10 +58,10 @@ function Home() {
 
                     <div className="mt-3">
                       <h3 className="font-medium text-gray-900 group-hover:underline group-hover:underline-offset-4">
-                        Simple Watch
+                        Beautiful Watches
                       </h3>
 
-                      <p className="mt-1 text-sm text-gray-700">$150</p>
+                      <p className="mt-1 text-sm text-gray-700">From $150</p>
                     </div>
                   </a>
                 </li>

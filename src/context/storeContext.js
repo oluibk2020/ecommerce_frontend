@@ -5,12 +5,17 @@ const storeContext = createContext()
 export const StoreProvider = ({children})=>{
     const [login, setLogin] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [filterCategory, setFilterCategory] = useState("wristwatch");
+
+
 
     const contextObj = {
         login,
         setLogin,
         isLoading,
-        setIsLoading
+        setIsLoading,
+        filterCategory,
+        setFilterCategory
     }
 
     return(
