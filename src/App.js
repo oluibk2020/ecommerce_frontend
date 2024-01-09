@@ -13,6 +13,8 @@ import { StoreProvider } from "./context/storeContext";
 import Logout from "./components/Logout";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Orders from "./components/Orders";
+import OrderItem from "./components/OrderItem";
 function App() {
   return (
     <Router>
@@ -24,12 +26,14 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<Product />} />
+          <Route path="/order/:id" element={<OrderItem />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/logout" element={<Logout />} />
-          <Route path="/logout" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/orders" element={<Orders />} />
         </Routes>
       </StoreProvider>
       <Footer />

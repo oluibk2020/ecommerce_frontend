@@ -5,6 +5,7 @@ import { useContext } from "react";
 import storeContext from "../context/storeContext";
 import { SlLogin, SlLogout } from "react-icons/sl";
 import { FaUserAlt } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
 
 function Navbar() {
   const [navbarOpen, setNavbarOpen] = useState(false);
@@ -27,10 +28,7 @@ function Navbar() {
             <div className="px-5 xl:px-12 py-6 flex w-full items-center">
               <div className="flex-none px-2 mx-2">
                 <GiShop className="text-3xl inline pr-2" />
-                <Link
-                  to="/"
-                  className="text-lg font-bold"
-                >
+                <Link to="/" className="text-lg font-bold">
                   Reddy
                 </Link>
               </div>
@@ -141,20 +139,26 @@ function Navbar() {
               href="#"
               onClick={checkNavbar}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 hover:text-gray-200"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              {navbarOpen ? (
+               <IoMdClose className="text-3xl"/>
+              ) : (
+                <div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 hover:text-gray-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </div>
+              )}
             </a>
           </nav>
         </section>

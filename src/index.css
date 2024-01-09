@@ -50,4 +50,7 @@
     color: white;
     background-color: #ec4899;
   }
+  .productDetail{
+    display: block;
+  }
 }
