@@ -3,6 +3,8 @@ import { toast } from "react-toastify";
 
 const storeContext = createContext();
 
+const REDDY_URL = process.env.REACT_APP_REDDY_URL;
+
 export const StoreProvider = ({ children }) => {
   const [login, setLogin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -187,7 +189,7 @@ export const StoreProvider = ({ children }) => {
   //fetch all products
   async function AllProductFetcher() {
     try {
-      const response = await fetch("/products");
+      const response = await fetch(`${REDDY_URL}/products`);
       const data = await response.json();
 
       setStoreList(data);
@@ -199,7 +201,7 @@ export const StoreProvider = ({ children }) => {
   //fetch single product
   async function productFetcher(id) {
     try {
-      const response = await fetch(`/products/${id}`);
+      const response = await fetch(`${REDDY_URL}/products/${id}`);
       const data = await response.json();
       setProductData(data);
     } catch (error) {
@@ -212,7 +214,7 @@ export const StoreProvider = ({ children }) => {
     try {
       const setId = Number(id);
       if (setId <= 2) {
-        const response = await fetch(`/categories/${id}`);
+        const response = await fetch(`${REDDY_URL}/categories/${id}`);
         const data = await response.json();
 
         setStoreList(data);
@@ -230,7 +232,7 @@ export const StoreProvider = ({ children }) => {
   async function queryProduct(categoryId, maxPrice, minPrice, productName) {
     try {
       const response = await fetch(
-        `/products/s?categoryId=${categoryId}&maxPrice=${maxPrice}&minPrice=${minPrice}&name=${productName}&page=${currentPage}`
+        `${REDDY_URL}/products/s?categoryId=${categoryId}&maxPrice=${maxPrice}&minPrice=${minPrice}&name=${productName}&page=${currentPage}`
       );
       const data = await response.json();
       setStoreList(data.products);
