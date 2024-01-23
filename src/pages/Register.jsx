@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUserAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
@@ -8,19 +8,29 @@ import storeContext from "../context/storeContext";
 
 function Register() {
   const { isLoading, setIsLoading } = useContext(storeContext);
+
+   const navigate = useNavigate();
+
+  //website url
+  const REDDY_URL = process.env.REACT_APP_REDDY_URL;
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     email: "",
     password: "",
     password_confirmation: "",
-
+    mobile: "",
   });
 
-  const [marketing_accept, setIsMarketingAccept] = useState(false);
-
-  const { first_name, last_name, email, password, password_confirmation } =
-    formData;
+  const {
+    first_name,
+    last_name,
+    email,
+    password,
+    password_confirmation,
+    mobile,
+  } = formData;
 
   function onChange(e) {
     setFormData((prevState) => ({
@@ -29,19 +39,57 @@ function Register() {
     }));
   }
 
+  //create Account
+  async function createAccount(firstName, lastName, email, mobile, password) {
+    try {
+      const response = await fetch(`${REDDY_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+          mobile,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+          toast.success("Account created successfully");
+           setFormData({
+             first_name: "",
+             last_name: "",
+             email: "",
+             password: "",
+             password_confirmation: "",
+             mobile: "",
+           });
+           navigate("/login")
+        console.log("success", data);
+      } else{
+       toast.error (data[0].message);
+      }
+
+      setIsLoading(false);
+      
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   function onSubmit(e) {
     e.preventDefault();
 
     if (password !== password_confirmation) {
       toast.error("Passwords do not match");
     } else {
-      const userData = {
-        first_name,
-        last_name,
-        email,
-        password,
-        marketing_accept,
-      };
+      setIsLoading(true)
+      createAccount(first_name, last_name, email, mobile, password)
     }
   }
 
@@ -146,12 +194,31 @@ function Register() {
                 </label>
 
                 <input
-                  type="email"
+                  type="text"
                   id="Email"
                   value={email}
                   required
                   onChange={onChange}
                   name="email"
+                  className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm p-3"
+                />
+              </div>
+              <div className="col-span-6">
+                <label
+                  htmlFor="Mobile"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {" "}
+                  Mobile{" "}
+                </label>
+
+                <input
+                  type="number"
+                  id="Mobile"
+                  value={mobile}
+                  required
+                  onChange={onChange}
+                  name="mobile"
                   className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm p-3"
                 />
               </div>
@@ -196,34 +263,16 @@ function Register() {
               </div>
 
               <div className="col-span-6">
-                <label htmlFor="MarketingAccept" className="flex gap-4">
-                  <input
-                    type="checkbox"
-                    id="MarketingAccept"
-                    name="marketing_accept"
-                    value={marketing_accept}
-                    onChange={() => setIsMarketingAccept(!marketing_accept)}
-                    className="h-5 w-5 rounded-md border-gray-200 bg-white shadow-sm"
-                  />
-
-                  <span className="text-sm text-gray-700">
-                    I want to receive emails about events, product updates and
-                    company announcements.
-                  </span>
-                </label>
-              </div>
-
-              <div className="col-span-6">
                 <p className="text-sm text-gray-500">
                   By creating an account, you agree to our
-                  <a href="#" className="text-gray-700 underline">
+                  <Link to="/" className="text-gray-700 underline">
                     {" "}
                     terms and conditions{" "}
-                  </a>
+                  </Link>
                   and
-                  <a href="#" className="text-gray-700 underline">
+                  <Link to="/" className="text-gray-700 underline">
                     privacy policy
-                  </a>
+                  </Link>
                   .
                 </p>
               </div>

@@ -9,7 +9,7 @@ import { IoMdClose } from "react-icons/io";
 
 function Navbar() {
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const {login, setLogin} = useContext(storeContext)
+  const {isAuth, setIsAuth} = useContext(storeContext)
 
 
   function checkNavbar() {
@@ -60,6 +60,19 @@ function Navbar() {
                     About
                   </NavLink>
                 </li>
+                {isAuth ? (
+                  <li>
+                    <NavLink
+                      activeclassname="active"
+                      className="hover:text-gray-200"
+                      to="/orders"
+                    >
+                      My Orders
+                    </NavLink>
+                  </li>
+                ) : (
+                  null
+                )}
               </ul>
               <div className="hidden md:flex items-center space-x-5">
                 <NavLink
@@ -86,7 +99,7 @@ function Navbar() {
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
                   </span>
                 </NavLink>
-                {login ? null : (
+                {isAuth ? null : (
                   <Link
                     className="flex items-center hover:text-gray-200"
                     to="/register"
@@ -94,7 +107,7 @@ function Navbar() {
                     <FaUserAlt className="text-2xl" />
                   </Link>
                 )}
-                {login ? (
+                {isAuth ? (
                   <Link
                     className="flex items-center hover:text-gray-200"
                     to="/logout"
@@ -140,7 +153,7 @@ function Navbar() {
               onClick={checkNavbar}
             >
               {navbarOpen ? (
-               <IoMdClose className="text-3xl"/>
+                <IoMdClose className="text-3xl" />
               ) : (
                 <div>
                   <svg
@@ -197,7 +210,7 @@ function Navbar() {
                   </NavLink>
                 </li>
                 <li>
-                  {login ? null : (
+                  {isAuth ? null : (
                     <Link
                       to="/register"
                       className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 "
@@ -208,13 +221,21 @@ function Navbar() {
                 </li>
 
                 <li>
-                  {login ? (
-                    <Link
-                      to="/logout"
-                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 "
-                    >
-                      Log out
-                    </Link>
+                  {isAuth ? (
+                    <>
+                      <Link
+                        to="/orders"
+                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 "
+                      >
+                        My Orders
+                      </Link>
+                      <Link
+                        to="/logout"
+                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 "
+                      >
+                        Log out
+                      </Link>
+                    </>
                   ) : (
                     <Link
                       to="/login"

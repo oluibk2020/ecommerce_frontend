@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUserAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
@@ -10,23 +10,35 @@ import {
 } from "react-icons/io";
 import storeContext from "../context/storeContext";
 import NoCartFound from "../pages/NoCartFound";
+import { useJwt } from "react-jwt";
 
 
 
 function Checkout() {
-    const { cartData,  increaseQty, decreaseQty } =
-      useContext(storeContext);
+  //logout if not validated
+  const token = localStorage.getItem("token");
+  const { decodedToken, isExpired } = useJwt(token);
 
-  
+  const navigate = useNavigate();
 
-      let totalPrice = 0;
-      let VAT = 200;
-      for (const product of cartData) {
-        // Fetch the product price
-        totalPrice += product.price * product.quantity;
-      }
-    
-  const { isLoading, setIsLoading, login } = useContext(storeContext);
+  const {
+    cartData,
+    setIsAuth,
+    increaseQty,
+    decreaseQty,
+    isAuth,
+    isLoading,
+    setIsLoading,
+    setCartData,
+  } = useContext(storeContext);
+
+  let totalPrice = 0;
+  for (const product of cartData) {
+    // Fetch the product price
+    totalPrice += product.price * product.quantity;
+  }
+  let VAT = (7.5 / 100) * totalPrice;
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -36,12 +48,37 @@ function Checkout() {
     password_confirmation: "",
     delivery_first_name: "",
     delivery_last_name: "",
-    delivery_email: "",
     delivery_address: "",
     delivery_phone: "",
   });
+  const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
-  const [paymentMethod, setPaymentMethod] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  useEffect(() => {
+    try {
+      if (isExpired || !token) {
+        // Handle invalid or expired token
+        localStorage.removeItem("token");
+        setIsAuth(false);
+        navigate("/login");
+
+        return;
+      }
+
+      if (!isExpired) {
+        setIsLoading(true);
+        setIsLoading(false)
+      }
+
+     
+    } catch (error) {
+      toast.error("Sorry! You need to Login");
+    }
+  }, []);
+
+
+  //website url
 
   function selectPayment(e) {
     setPaymentMethod(e.target.value);
@@ -51,7 +88,6 @@ function Checkout() {
     delivery_address,
     delivery_first_name,
     delivery_last_name,
-    delivery_email,
     delivery_phone,
     first_name,
     last_name,
@@ -68,19 +104,91 @@ function Checkout() {
     }));
   }
 
+   if (isLoading) {
+     return <Spinner />;
+   }
+
+  //create delivery address
+  async function createDeliveryAddress() {
+    try {
+      const response = await fetch(`${REDDY_URL}/delivery/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          address: delivery_address,
+          firstName: delivery_first_name,
+          lastName: delivery_last_name,
+          mobile: delivery_phone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        toast.success("Delivery created successfully");
+        //clear form
+        setFormData({
+          delivery_first_name: "",
+          delivery_last_name: "",
+          delivery_address: "",
+          delivery_phone: "",
+        });
+
+        //create order
+        createOrder(data.id);
+
+        return;
+      } else {
+        console.log(data);
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //send cartitems and deliveryId to server
+  async function createOrder(deliveryId) {
+    try {
+      const response = await fetch(`${REDDY_URL}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          deliveryAddressId: deliveryId,
+          cartItems: cartData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 201) {
+        toast.success("Invoice has been created successfully");
+        navigate("/orders");
+        //navigate to flutterwave to make payment
+        console.log("orderId", data.id);
+        console.log("totalAmount", data.totalAmount);
+        setCartData([]);
+
+        return;
+      } else {
+        console.log(data);
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   function onSubmit(e) {
     e.preventDefault();
 
-    if (password !== password_confirmation) {
-      toast.error("Passwords do not match");
-    } else {
-      const userData = {
-        first_name,
-        last_name,
-        email,
-        password,
-      };
-    }
+    createDeliveryAddress();
   }
 
   if (isLoading) {
@@ -181,117 +289,6 @@ function Checkout() {
 
               <div className="rounded-lg bg-white p-8 shadow-lg lg:col-span-3 lg:p-12">
                 <form action="" className="space-y-4" onSubmit={onSubmit}>
-                  {!login ? (
-                    <div>
-                      <h1 className=" text-gray-900 text-base">
-                        Let's create an account for you
-                      </h1>
-                      <div>
-                        <label className="sr-only" htmlFor="first_name">
-                          First Name
-                        </label>
-                        <input
-                          className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                          placeholder="First Name"
-                          type="text"
-                          id="first_name"
-                          value={first_name}
-                          onChange={onChange}
-                          name="first_name"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="sr-only" htmlFor="last_name">
-                          Last Name
-                        </label>
-                        <input
-                          className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                          placeholder="Last Name"
-                          type="text"
-                          id="last_name"
-                          value={last_name}
-                          onChange={onChange}
-                          name="last_name"
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="sr-only" htmlFor="email">
-                            Email
-                          </label>
-                          <input
-                            className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                            placeholder="Email address"
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={onChange}
-                            name="email"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="sr-only" htmlFor="phone">
-                            Phone
-                          </label>
-                          <input
-                            className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                            placeholder="Phone Number"
-                            type="text"
-                            pattern="[0-9]{11}"
-                            id="phone"
-                            value={phone}
-                            onChange={onChange}
-                            name="phone"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="sr-only" htmlFor="password">
-                            Password
-                          </label>
-                          <input
-                            className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                            placeholder="Password"
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={onChange}
-                            name="password"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            className="sr-only"
-                            htmlFor="password_confirmation"
-                          >
-                            Password confirmation
-                          </label>
-                          <input
-                            required
-                            className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                            placeholder="Password Confirmation"
-                            type="password"
-                            value={password_confirmation}
-                            onChange={onChange}
-                            name="password_confirmation"
-                            id="password_confirmation"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-
                   <div>
                     <h1 className=" text-gray-900 text-base py-4">
                       Kindly fill in the delivery details
@@ -347,22 +344,6 @@ function Checkout() {
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="sr-only" htmlFor="delivery_email">
-                          Email
-                        </label>
-                        <input
-                          className="w-full rounded-lg border-gray-200 p-3 text-sm"
-                          placeholder="Email address"
-                          type="email"
-                          id="delivery_email"
-                          value={delivery_email}
-                          onChange={onChange}
-                          name="delivery_email"
-                          required
-                        />
-                      </div>
-
-                      <div>
                         <label className="sr-only" htmlFor="delivery_phone">
                           Phone
                         </label>
@@ -387,7 +368,7 @@ function Checkout() {
                     </h1>
                   </div>
                   <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-2">
-                    <div>
+                    {/* <div>
                       <input
                         className="peer sr-only"
                         id="option1"
@@ -405,7 +386,7 @@ function Checkout() {
                       >
                         <span className="text-sm"> PayStack </span>
                       </label>
-                    </div>
+                    </div> */}
 
                     <div>
                       <input

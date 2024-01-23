@@ -9,7 +9,7 @@ function Product() {
     productData,
     cartData,
     productFetcher,
-    addNewProductToCart
+    addNewProductToCart,
   } = useContext(storeContext);
   
 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   IoIosAddCircleOutline,
   IoIosRemoveCircleOutline,
@@ -11,7 +11,9 @@ import NoCartFound from "../pages/NoCartFound";
 
 
 function Cart() {
-  const { cartData, increaseQty, decreaseQty} = useContext(storeContext);
+    const navigate = useNavigate();
+  const { cartData, increaseQty, decreaseQty, isAuth} = useContext(storeContext);
+
 
 
   //calculation in each cart(multiply qty by price)
@@ -110,12 +112,30 @@ function Cart() {
                    </dl>
 
                    <div className="flex justify-end">
-                     <Link
-                       to="/checkout"
-                       className="block rounded bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
-                     >
-                       Checkout
-                     </Link>
+                     {isAuth ? (
+                       <Link
+                         to="/checkout"
+                         className="block rounded bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+                       >
+                         Checkout
+                       </Link>
+                     ) : (
+                       <>
+                         {" "}
+                         <Link
+                           to="/login"
+                           className="block rounded bg-pink-600 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
+                         >
+                           Login to Checkout
+                         </Link>
+                         <Link
+                           to="/register"
+                           className="block rounded bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600 ml-5"
+                         >
+                           Sign up
+                         </Link>
+                       </>
+                     )}
                    </div>
                  </div>
                </div>

@@ -9,9 +9,16 @@ import storeContext from "../context/storeContext";
 import { Link } from "react-router-dom";
 
 function Login() {
-  const { isLoading, setIsLoading } = useContext(storeContext);
+  const { isLoading, setIsLoading,setIsAuth , isAuth} =
+    useContext(storeContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false)
+  const toggle = () => setShowPassword(!showPassword)
+
+  //website url
+  const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
   function onChangeEmail(e) {
     setEmail(e.target.value);
@@ -20,18 +27,46 @@ function Login() {
     setPassword(e.target.value);
   }
 
+  //if auth is true, navigate to orders
+  useEffect(() => {
+    if (isAuth) {
+      navigate("/orders")
+    }
+  },[])
+
   //logging user in
-  function onSubmit(e) {
-    e.preventDefault();
+  async function loginHandler(e) {
+    e.preventDefault()
+    setIsLoading(true);
     if (password.trim().length > 5) {
-      setIsLoading(true);
-      toast.success("We are logging you In");
-      setTimeout(() => {
-        setIsLoading(false);
-        toast.success("you are logged in");
-      }, 5000);
+      const response = await fetch(`${REDDY_URL}/auth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+// console.log(data);
+      if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        setIsAuth(true)
+        navigate("/orders");
+        
+      } else {
+        
+        toast.error(data);
+        setEmail("");
+        setPassword("");
+      }
+      setIsLoading(false);
     } else {
-      toast.error("Error. Check email or password");
+      toast.error("Error.password must be at least 5 characters");
+      setIsLoading(false);
     }
   }
 
@@ -53,7 +88,7 @@ function Login() {
           </p>
 
           <form
-            onSubmit={onSubmit}
+            onSubmit={loginHandler}
             className="mb-0 mt-6 space-y-4 rounded-lg p-4 shadow-lg sm:p-6 lg:p-8"
           >
             <p className="text-center text-lg font-medium">
@@ -101,7 +136,7 @@ function Login() {
 
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text": "password"}
                   className="w-full rounded-lg border-gray-200 p-4 pe-12 text-sm shadow-sm"
                   placeholder="Enter password"
                   value={password}
@@ -109,7 +144,7 @@ function Login() {
                   required
                 />
 
-                <span className="absolute inset-y-0 end-0 grid place-content-center px-4">
+                <span className="absolute inset-y-0 end-0 grid place-content-center px-4" onClick={toggle}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4 text-gray-400"

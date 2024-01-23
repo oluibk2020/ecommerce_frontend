@@ -1,190 +1,217 @@
 import { createContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useJwt } from "react-jwt";
 
 const storeContext = createContext();
-
 const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
 export const StoreProvider = ({ children }) => {
-  const [login, setLogin] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [storeList, setStoreList] = useState([]);
-
   const [productData, setProductData] = useState({});
   const [cartData, setCartData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [orderList, setOrderList] = useState({
-    firstName: "Yemi",
-    orders: [
-      {
-        id: 2,
-        totalAmount: 10411,
-        paymentMethod: "flutterwave",
-        transactionSuccessful: true,
-        createdAt: "2023-12-19T19:16:59.441Z",
-        userId: 1,
-        deliveryAddressId: 1,
-        orderItems: [
-          {
-            id: 1,
-            productId: 11,
-            quantity: 1,
-            price: 800,
-            orderId: 2,
-          },
-          {
-            id: 2,
-            productId: 9,
-            quantity: 2,
-            price: 3760,
-            orderId: 2,
-            createdAt: "2023-12-19T19:16:59.441Z",
-            updatedAt: "2023-12-19T19:16:59.441Z",
-          },
-          {
-            id: 3,
-            productId: 12,
-            quantity: 1,
-            price: 1800,
-            orderId: 2,
-            createdAt: "2023-12-19T19:16:59.441Z",
-            updatedAt: "2023-12-19T19:16:59.441Z",
-          },
-          {
-            id: 4,
-            productId: 10,
-            quantity: 1,
-            price: 290,
-            orderId: 2,
-            createdAt: "2023-12-19T19:16:59.441Z",
-            updatedAt: "2023-12-19T19:16:59.441Z",
-          },
-        ],
-        deliveryAddress: {
-          address: "Kolapouiyh, afromedia, lagos",
-        },
-      },
-      {
-        id: 3,
-        totalAmount: 2090,
-        paymentMethod: "flutterwave",
-        transactionSuccessful: true,
-        createdAt: "2023-12-19T19:21:48.671Z",
-        updatedAt: "2023-12-19T19:21:48.671Z",
-        userId: 1,
-        deliveryAddressId: 1,
-        orderItems: [
-          {
-            id: 5,
-            productId: 12,
-            quantity: 1,
-            price: 1800,
-            orderId: 3,
-            createdAt: "2023-12-19T19:21:48.671Z",
-            updatedAt: "2023-12-19T19:21:48.671Z",
-          },
-          {
-            id: 6,
-            productId: 10,
-            quantity: 1,
-            price: 290,
-            orderId: 3,
-            createdAt: "2023-12-19T19:21:48.671Z",
-            updatedAt: "2023-12-19T19:21:48.671Z",
-          },
-        ],
-        deliveryAddress: {
-          id: 1,
-          address: "Kolapouiyh, afromedia, lagos",
-          mobile: "090399193326",
-          firstName: "Saheed",
-          lastName: "Alliwo",
-          createdAt: "2023-12-19T16:21:51.662Z",
-          updatedAt: "2023-12-19T16:21:51.662Z",
-          userId: 1,
-        },
-      },
-    ],
-  });
+  const [orderList, setOrderList] = useState({});
+  const [orderData, setOrderData] = useState({});
+  const [localTime, setLocalTime] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState({});
 
-  //cart fetcher
-  function cartFetcher() {
-    const updatedCartData = cartData.map((cartItem) => {
-      // Add a 'quantity' attribute with a default value of 1 to each cartItem
-      return { ...cartItem, quantity: 1 };
-    });
-    setCartData(updatedCartData);
-  }
+  //website url
+  const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
-  //add new product to cart
-  const addNewProductToCart = (product) => {
-    const productWithQty = { ...product, quantity: 1 };
-    setCartData([...cartData, productWithQty]);
-  };
+  //get token from localstorage
+  const token = localStorage.getItem("token");
+  const { isExpired } = useJwt(token);
 
-  //increase product qty
-  function increaseQty(productId) {
-    // Check if the product with productId is already in the cart
-    const productIndex = cartData.findIndex(
-      (cartItem) => cartItem.id === productId
-    );
+  //check if loggedIn
+  async function loginChecker() {
+    try {
+      if (token === null) {
+        setIsAuth(false);
+        return
+      }
+      if (isExpired) {
+        // Handle invalid or expired token
+        localStorage.removeItem("token");
+        setIsAuth(false);
 
-    if (productIndex !== -1) {
-      // If the product is in the cart, update its quantity
-      const updatedCartData = cartData.map((cartItem, index) => {
-        if (index === productIndex) {
-          // Increase the quantity by 1 only if it's equal or greater than 1
-          const updatedQuantity =
-            (cartItem.quantity || 0) >= 1 ? (cartItem.quantity || 0) + 1 : 1;
+        return;
+      }
 
-          return { ...cartItem, quantity: updatedQuantity };
-        }
-        return cartItem;
-      });
-
-      // Update the cartData with the modified array
-      setCartData(updatedCartData);
-    }
-  }
-
-  //decrease product quantity
-  //increase product qty
-  function decreaseQty(productId) {
-    console.log(productId);
-    // Check if the product with productId is already in the cart
-    const productIndex = cartData.findIndex(
-      (cartItem) => cartItem.id === productId
-    );
-
-    if (productIndex !== -1) {
-      // If the product is in the cart, update its quantity
-      const updatedCartData = cartData
-        .map((cartItem, index) => {
-          if (index === productIndex) {
-            // Decrease the quantity by 1 only if it's equal or greater than 1
-            const updatedQuantity =
-              (cartItem.quantity || 0) > 1 ? (cartItem.quantity || 0) - 1 : 0;
-
-            // Return null to remove the item if the quantity becomes zero
-            return updatedQuantity > 0
-              ? { ...cartItem, quantity: updatedQuantity }
-              : null;
-          }
-          return cartItem;
-        })
-        .filter(Boolean); // Filter out null values
-
-      // Update the cartData with the modified array
-      setCartData(updatedCartData);
+      if (!isExpired) {
+        setIsAuth(true);
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
   //fetch all products on app load
   useEffect(() => {
     AllProductFetcher();
+    loginChecker(); //check if user has loggedIn device
   }, []);
+
+  async function getDeliveryAddress(id) {
+    try {
+      const response = await fetch(`${REDDY_URL}/delivery/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setDeliveryAddress(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function clockConverter(date) {
+    try {
+      const convertedTime = new Date(`${date}`).toLocaleString("en-US", {
+        timeZone: "Africa/Lagos",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      });
+      setLocalTime(convertedTime);
+      return;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //fetch order data from server
+  async function orderFetcher(id) {
+    try {
+      const response = await fetch(`${REDDY_URL}/orders/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setOrderData(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //fetch all orders from server
+  async function fetchOrders() {
+    try {
+      const response = await fetch(`${REDDY_URL}/orders`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setOrderList(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //cart fetcher
+  function cartFetcher() {
+    try {
+      const updatedCartData = cartData.map((cartItem) => {
+        // Add a 'quantity' attribute with a default value of 1 to each cartItem
+        return { ...cartItem, quantity: 1 };
+      });
+      setCartData(updatedCartData);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //add new product to cart
+  const addNewProductToCart = (product) => {
+    try {
+      const productWithQty = { ...product, quantity: 1 };
+      setCartData([...cartData, productWithQty]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  //increase product qty
+  function increaseQty(productId) {
+    try {
+      // Check if the product with productId is already in the cart
+      const productIndex = cartData.findIndex(
+        (cartItem) => cartItem.id === productId
+      );
+
+      if (productIndex !== -1) {
+        // If the product is in the cart, update its quantity
+        const updatedCartData = cartData.map((cartItem, index) => {
+          if (index === productIndex) {
+            // Increase the quantity by 1 only if it's equal or greater than 1
+            const updatedQuantity =
+              (cartItem.quantity || 0) >= 1 ? (cartItem.quantity || 0) + 1 : 1;
+
+            return { ...cartItem, quantity: updatedQuantity };
+          }
+          return cartItem;
+        });
+
+        // Update the cartData with the modified array
+        setCartData(updatedCartData);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  //decrease product quantity
+  //increase product qty
+  function decreaseQty(productId) {
+    try {
+      // Check if the product with productId is already in the cart
+      const productIndex = cartData.findIndex(
+        (cartItem) => cartItem.id === productId
+      );
+
+      if (productIndex !== -1) {
+        // If the product is in the cart, update its quantity
+        const updatedCartData = cartData
+          .map((cartItem, index) => {
+            if (index === productIndex) {
+              // Decrease the quantity by 1 only if it's equal or greater than 1
+              const updatedQuantity =
+                (cartItem.quantity || 0) > 1 ? (cartItem.quantity || 0) - 1 : 0;
+
+              // Return null to remove the item if the quantity becomes zero
+              return updatedQuantity > 0
+                ? { ...cartItem, quantity: updatedQuantity }
+                : null;
+            }
+            return cartItem;
+          })
+          .filter(Boolean); // Filter out null values
+
+        // Update the cartData with the modified array
+        setCartData(updatedCartData);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   //fetch all products
   async function AllProductFetcher() {
@@ -249,8 +276,8 @@ export const StoreProvider = ({ children }) => {
   };
 
   const contextObj = {
-    login,
-    setLogin,
+    isAuth,
+    setIsAuth,
     isLoading,
     setIsLoading,
     storeList,
@@ -271,7 +298,13 @@ export const StoreProvider = ({ children }) => {
     totalPages,
     setTotalPages,
     orderList,
-    setOrderList,
+    fetchOrders,
+    orderFetcher,
+    orderData,
+    localTime,
+    clockConverter,
+    deliveryAddress,
+    getDeliveryAddress,
   };
 
   return (
