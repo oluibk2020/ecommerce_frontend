@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaUserAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Spinner from "./Spinner";
@@ -11,13 +10,12 @@ import {
 import storeContext from "../context/storeContext";
 import NoCartFound from "../pages/NoCartFound";
 import { useJwt } from "react-jwt";
-
-
+import PaymentRedirect from "./PaymentRedirect";
 
 function Checkout() {
   //logout if not validated
   const token = localStorage.getItem("token");
-  const { decodedToken, isExpired } = useJwt(token);
+  const {  isExpired } = useJwt(token);
 
   const navigate = useNavigate();
 
@@ -26,10 +24,11 @@ function Checkout() {
     setIsAuth,
     increaseQty,
     decreaseQty,
-    isAuth,
     isLoading,
     setIsLoading,
     setCartData,
+    paymentLink,
+    createGatewayInvoice,
   } = useContext(storeContext);
 
   let totalPrice = 0;
@@ -40,12 +39,6 @@ function Checkout() {
   let VAT = (7.5 / 100) * totalPrice;
 
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    password: "",
-    password_confirmation: "",
     delivery_first_name: "",
     delivery_last_name: "",
     delivery_address: "",
@@ -53,7 +46,7 @@ function Checkout() {
   });
   const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [ setPaymentMethod] = useState("");
 
   useEffect(() => {
     try {
@@ -68,15 +61,12 @@ function Checkout() {
 
       if (!isExpired) {
         setIsLoading(true);
-        setIsLoading(false)
+        setIsLoading(false);
       }
-
-     
     } catch (error) {
       toast.error("Sorry! You need to Login");
     }
   }, []);
-
 
   //website url
 
@@ -89,12 +79,6 @@ function Checkout() {
     delivery_first_name,
     delivery_last_name,
     delivery_phone,
-    first_name,
-    last_name,
-    email,
-    phone,
-    password,
-    password_confirmation,
   } = formData;
 
   function onChange(e) {
@@ -104,9 +88,9 @@ function Checkout() {
     }));
   }
 
-   if (isLoading) {
-     return <Spinner />;
-   }
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   //create delivery address
   async function createDeliveryAddress() {
@@ -169,8 +153,8 @@ function Checkout() {
 
       if (response.status === 201) {
         toast.success("Invoice has been created successfully");
-        navigate("/orders");
-        //navigate to flutterwave to make payment
+
+        createGatewayInvoice(data.id); //generate payment link
         console.log("orderId", data.id);
         console.log("totalAmount", data.totalAmount);
         setCartData([]);
@@ -195,6 +179,10 @@ function Checkout() {
     return <Spinner />;
   }
 
+  if (paymentLink.trim() !== "") {
+    return <PaymentRedirect link={paymentLink} />;
+  }
+
   return (
     <>
       {cartData.length > 0 ? (
@@ -207,7 +195,7 @@ function Checkout() {
           <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-x-16 gap-y-8 lg:grid-cols-5">
               <div className="lg:col-span-2 lg:py-12">
-                <div className="max-w-xl text-lg">
+                <div className="max-w-xl text-sm">
                   <ul className="space-y-4">
                     {cartData.map((product) => {
                       return (
@@ -225,7 +213,9 @@ function Checkout() {
 
                           <div>
                             <h3 className="text-sm text-gray-900">
-                              {product.title}
+                              {product.title.length > 20
+                                ? product.title.substring(0, 20) + "..."
+                                : product.title}
                             </h3>
                           </div>
 
@@ -414,15 +404,15 @@ function Checkout() {
                     <p className="text-sm text-gray-500">
                       We will create an account when you make payment, and so
                       you agree to our
-                      <a href="#" className="text-gray-700 underline">
+                      <Link to="/" className="text-gray-700 underline">
                         {" "}
                         terms and conditions{" "}
-                      </a>
+                      </Link>
                       and
-                      <a href="#" className="text-gray-700 underline">
+                      <Link to="/" className="text-gray-700 underline">
                         {" "}
                         privacy policy
-                      </a>
+                      </Link>
                       .
                     </p>
                   </div>

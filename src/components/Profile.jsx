@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import storeContext from "../context/storeContext";
-import { useJwt } from "react-jwt";
 
 function Profile({fullName}) {
 

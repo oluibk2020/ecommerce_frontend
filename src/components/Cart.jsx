@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+
+import { Link } from "react-router-dom";
 import {
   IoIosAddCircleOutline,
   IoIosRemoveCircleOutline,
@@ -11,7 +11,6 @@ import NoCartFound from "../pages/NoCartFound";
 
 
 function Cart() {
-    const navigate = useNavigate();
   const { cartData, increaseQty, decreaseQty, isAuth} = useContext(storeContext);
 
 

@@ -9,7 +9,7 @@ import { IoMdClose } from "react-icons/io";
 
 function Navbar() {
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const {isAuth, setIsAuth} = useContext(storeContext)
+  const {isAuth} = useContext(storeContext)
 
 
   function checkNavbar() {

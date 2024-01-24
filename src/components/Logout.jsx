@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import storeContext from "../context/storeContext";
 import { toast } from "react-toastify";
 import { useContext } from "react";
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { useJwt } from "react-jwt";
 
 function Logout() {

@@ -1,11 +1,12 @@
 import { toast } from "react-toastify";
 import { useContext } from "react";
 import storeContext from "../context/storeContext";
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useJwt } from "react-jwt";
 import Spinner from "../components/Spinner";
 import { useParams } from "react-router-dom";
+import PaymentRedirect from "./PaymentRedirect";
 
 function OrderItem() {
   //this should be replaced by the order item data which should be fetched using the id
@@ -18,7 +19,9 @@ function OrderItem() {
     localTime,
     clockConverter,
     deliveryAddress,
-    getDeliveryAddress
+    getDeliveryAddress,
+    createGatewayInvoice,
+    paymentLink,
   } = useContext(storeContext);
   const navigate = useNavigate();
   //logout if not validated
@@ -27,8 +30,8 @@ function OrderItem() {
   const isEmpty = Object.keys(orderData).length === 0;
 
   //vat
-  let VAT = 0
-  
+  let VAT = 0;
+
   //params
   const params = useParams();
 
@@ -47,30 +50,43 @@ function OrderItem() {
         setIsLoading(true);
 
         orderFetcher(params.id); //auto fetching of order
-        
+
         //auto fetching of product at page load
-         if (isEmpty === false) {
-           setIsLoading(false);
-           //VAT
-            
+        if (isEmpty === false) {
+          setIsLoading(false);
+          //VAT
 
-           //set localTime
-           clockConverter(orderData.order.createdAt);
+          //set localTime
+          clockConverter(orderData.order.createdAt);
 
-           //get delivery address
-           getDeliveryAddress(orderData.order.deliveryAddressId);
-         }
+          //get delivery address
+          getDeliveryAddress(orderData.order.deliveryAddressId);
+        }
       }
     } catch (error) {
       toast.error("Sorry! You need to Login");
     }
   }, [isEmpty]);
 
-    
-    if (isLoading) {
-      return <Spinner />;
+  function payNow() {
+    try {
+      if (isEmpty === false) {
+        if (orderData.order.transactionStatus === "pending") {
+          createGatewayInvoice(orderData.order.id); //generate payment link
+        }
+      }
+    } catch (error) {
+      console.log(error);
     }
+  }
 
+  if (paymentLink.trim() !== "") {
+    return <PaymentRedirect link={paymentLink} />;
+  }
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <section>
@@ -201,7 +217,9 @@ function OrderItem() {
                       ₦
                       {Object.keys(orderData).length === 0
                         ? null
-                        : ((7.5 / 100) * orderData.order.totalAmount).toFixed(2)}
+                        : ((7.5 / 100) * orderData.order.totalAmount).toFixed(
+                            2
+                          )}
                     </dd>
                   </div>
                   <div className="flex justify-between !text-base font-medium">
@@ -215,13 +233,22 @@ function OrderItem() {
                   </div>
                 </dl>
 
-                <div className="flex justify-end">
+                <div className="flex justify-between">
                   <Link
                     to="/orders"
                     className="block rounded bg-gray-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600"
                   >
                     Back to all orders
                   </Link>
+                  {Object.keys(orderData).length !== 0 &&
+                  orderData.order.transactionStatus === "pending" ? (
+                    <div
+                      onClick={payNow}
+                      className="block rounded bg-pink-700 px-5 py-3 text-sm text-gray-100 transition hover:bg-gray-600 btn"
+                    >
+                      Pay Now
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

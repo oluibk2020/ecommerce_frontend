@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import { useContext } from "react";
 import storeContext from "../context/storeContext";
 import FilterForm from "../components/FilterForm";

@@ -4,8 +4,7 @@ import storeContext from "../context/storeContext";
 function StoreList() {
 
 const { storeList } =
-  useContext(storeContext);
-  console.log(storeList);
+  useContext(storeContext)
 
   return <div>{storeList.map((item) => {
     <div key={item.id}>{item}</div>

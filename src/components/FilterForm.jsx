@@ -1,10 +1,9 @@
-import { toast } from "react-toastify";
-import Spinner from "../components/Spinner";
+
 import { useContext, useState,useEffect } from "react";
 import storeContext from "../context/storeContext";
 
 function FilterForm() {
-  const { isLoading,AllProductFetcher, setIsLoading, categoryProductFetcher,currentPage, queryProduct, setTotalPages } =
+  const { AllProductFetcher, categoryProductFetcher,currentPage, queryProduct, setTotalPages } =
     useContext(storeContext);
 
   //form data

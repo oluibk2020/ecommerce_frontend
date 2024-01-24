@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import { useJwt } from "react-jwt";
 
 const storeContext = createContext();
-const REDDY_URL = process.env.REACT_APP_REDDY_URL;
 
 export const StoreProvider = ({ children }) => {
   const [isAuth, setIsAuth] = useState(false);
@@ -17,6 +16,7 @@ export const StoreProvider = ({ children }) => {
   const [orderData, setOrderData] = useState({});
   const [localTime, setLocalTime] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState({});
+  const [paymentLink, setPaymentLink] = useState("")
 
   //website url
   const REDDY_URL = process.env.REACT_APP_REDDY_URL;
@@ -53,6 +53,23 @@ export const StoreProvider = ({ children }) => {
     AllProductFetcher();
     loginChecker(); //check if user has loggedIn device
   }, []);
+
+  async function createGatewayInvoice(orderId) {
+    const response = await fetch(
+      `${REDDY_URL}/payment/initiate/order/${orderId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+    console.log(data.response.data.link);
+    setPaymentLink(data.response.data.link);
+  }
 
   async function getDeliveryAddress(id) {
     try {
@@ -305,6 +322,9 @@ export const StoreProvider = ({ children }) => {
     clockConverter,
     deliveryAddress,
     getDeliveryAddress,
+    paymentLink,
+    createGatewayInvoice,
+    setPaymentLink
   };
 
   return (
